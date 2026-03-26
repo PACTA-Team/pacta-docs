@@ -1,6 +1,8 @@
-# Pacta Docs
+# PACTA Docs
 
-Documentación oficial de **Pacta** — Sistema POS offline-first para pequeños comercios.
+Documentación oficial de **PACTA** — Plataforma CLM (Contract Lifecycle Management).
+
+> **Contratos bajo control.**
 
 ---
 
@@ -8,45 +10,59 @@ Documentación oficial de **Pacta** — Sistema POS offline-first para pequeños
 
 | # | Documento | Descripción |
 |---|-----------|-------------|
-| 01 | [PRD.md](01_PRD.md) | Product Requirements Document — Visión, problema, funcionalidades |
-| 02 | [APP_FLOW.md](02_APP_FLOW.md) | Flujos de la aplicación y navegación |
-| 03 | [TECNOLOGIA.md](03_TECNOLOGIA.md) | Stack tecnológico y dependencias |
-| 04 | [CONTEXTO_PROYECTO.md](04_CONTEXTO_PROYECTO.md) | Contexto, arquitectura hexagonal, principios |
-| 05 | [CASOS_DE_USO.md](05_CASOS_DE_USO.md) | Casos de uso y escenarios |
-| 06 | [MVP.md](06_MVP.md) | Alcance del MVP y métricas de éxito |
-| 07 | [BRANDING_DISENO.md](07_BRANDING_DISENO.md) | Identidad de marca y diseño de pantallas |
-| 08 | [ROADMAP.md](08_ROADMAP.md) | Hoja de ruta del proyecto |
+| 01 | [PRD.md](01_PRD.md) | Product Requirements Document — Visión, funcionalidades, requerimientos |
+| 02 | [APP_FLOW.md](02_APP_FLOW.md) | Flujos de aplicación, navegación y autenticación |
+| 03 | [TECNOLOGIA.md](03_TECNOLOGIA.md) | Stack tecnológico: FastAPI, Flask, GraphQL, PostgreSQL |
+| 04 | [CONTEXTO_PROYECTO.md](04_CONTEXTO_PROYECTO.md) | Contexto, historia, principios de diseño |
+| 05 | [CASOS_DE_USO.md](05_CASOS_DE_USO.md) | 12 casos de uso detallados |
+| 06 | [MVP.md](06_MVP.md) | Alcance del MVP, criterios de aceptación |
+| 07 | [BRANDING_DISENO.md](07_BRANDING_DISENO.md) | Identidad de marca y sistema de diseño |
+| 08 | [ROADMAP.md](08_ROADMAP.md) | Roadmap v2.0 → v3.2 (3 años) |
 
 ---
 
 ## 🎯 Propósito
 
-Pacta es un sistema de punto de venta (POS) diseñado para negocios minoristas pequeños que operan en entornos con conectividad limitada o nula. Convierte un smartphone Android en una caja registradora completa usando:
+**PACTA** es una plataforma SaaS de gestión del ciclo de vida de contratos diseñada para organizaciones de mediano tamaño (20–500 empleados) que necesitan controlar, auditar y automatizar sus acuerdos comerciales.
 
-- ✅ **100% offline** — Sin dependencia de internet
-- 📱 **Escaneo de códigos** — Cámara del dispositivo
-- 🖨️ **Impresión Bluetooth** — Impresoras térmicas de bajo costo
-- 💾 **Almacenamiento local** — Hive database
+### Problemas que resuelve
+
+| Problema | Solución PACTA |
+|----------|----------------|
+| ❌ Contratos vencidos sin detectar | Alertas automáticas a 30 y 7 días |
+| ❌ Sin trazabilidad de cambios | Auditoría completa con usuario, timestamp y delta |
+| ❌ Búsqueda lenta de documentos | Búsqueda full-text + filtros avanzados |
+| ❌ Firmantes no autorizados | Gestión de firmantes por empresa |
+| ❌ Reportes manuales con errores | Reportes automáticos exportables (CSV/PDF) |
 
 ---
 
 ## 🏗️ Arquitectura
 
-El proyecto sigue **Arquitectura Hexagonal/Clean** con las siguientes capas:
-
 ```
-┌─────────────────────────────────────┐
-│         Presentación (Flutter)       │
-│              BLoC / UI              │
-├─────────────────────────────────────┤
-│         Aplicación (Use Cases)       │
-├─────────────────────────────────────┤
-│            Dominio (Puro)            │
-│     Entidades / Value Objects       │
-├─────────────────────────────────────┤
-│      Infraestructura (Adaptadores)   │
-│   Hive / Bluetooth / Cámara / etc   │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                        CLIENTES                             │
+│   ┌─────────────────┐    ┌──────────────────────────────┐  │
+│   │   Web App (SaaS)│    │  Desktop App (Win + Linux)   │  │
+│   │  Flask + Tailwind│   │  Python + PyWebView          │  │
+│   └────────┬────────┘    └──────────────┬───────────────┘  │
+└────────────┼───────────────────────────┼────────────────────┘
+             │ HTTPS / GraphQL           │ Local API
+             ▼                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    BACKEND (FastAPI)                         │
+│   ┌─────────────┐  ┌─────────────┐  ┌──────────────────┐  │
+│   │  REST Auth  │  │  GraphQL    │  │  Background Jobs │  │
+│   │  /auth/*    │  │  /graphql   │  │  (notificaciones)│  │
+│   └─────────────┘  └──────┬──────┘  └──────────────────┘  │
+└──────────────────────────┼──────────────────────────────────┘
+                           │
+           ┌───────────────┼────────────────────┐
+           ▼               ▼                    ▼
+    ┌─────────────┐  ┌──────────┐  ┌────────────────────┐
+    │ PostgreSQL  │  │  Redis   │  │   Object Storage   │
+    │ (datos)     │  │  (cache) │  │   (documentos)     │
+    └─────────────┘  └──────────┘  └────────────────────┘
 ```
 
 ---
@@ -55,17 +71,25 @@ El proyecto sigue **Arquitectura Hexagonal/Clean** con las siguientes capas:
 
 ### Para nuevos colaboradores
 
-1. Lee el [04_CONTEXTO_PROYECTO.md](04_CONTEXTO_PROYECTO.md) para entender la arquitectura
-2. Revisa el [03_TECNOLOGIA.md](03_TECNOLOGIA.md) para conocer el stack
-3. Estudia el [02_APP_FLOW.md](02_APP_FLOW.md) para comprender los flujos
-4. Consulta el [06_MVP.md](06_MVP.md) para el alcance actual
+1. Lee el [04_CONTEXTO_PROYECTO.md](04_CONTEXTO_PROYECTO.md) para entender la historia y arquitectura
+2. Revisa el [03_TECNOLOGIA.md](03_TECNOLOGIA.md) para conocer el stack completo
+3. Estudia el [02_APP_FLOW.md](02_APP_FLOW.md) para comprender los flujos de usuario
+4. Consulta el [06_MVP.md](06_MVP.md) para el alcance actual y criterios de aceptación
 
 ### Para actualizar documentación
 
-1. Crea una rama: `git checkout -b docs/tu-cambio`
-2. Edita los archivos correspondientes
-3. Commit: `git commit -m "docs: descripción del cambio"`
-4. Push y abre Pull Request
+```bash
+# Crear rama
+git checkout -b docs/tu-cambio
+
+# Editar archivos
+# ...
+
+# Commit y push
+git add .
+git commit -m "docs: descripción del cambio"
+git push
+```
 
 ---
 
@@ -83,17 +107,31 @@ pacta-docs/
 ├── 05_CASOS_DE_USO.md        # Casos de uso
 ├── 06_MVP.md                 # Alcance MVP
 ├── 07_BRANDING_DISENO.md     # Branding y diseño
-└── 08_ROADMAP.md             # Roadmap
+└── 08_ROADMAP.md             # Roadmap 3 años
 ```
 
 ---
 
 ## 🔗 Repositorios Relacionados
 
-| Repositorio | Descripción |
-|-------------|-------------|
-| [pacta_appweb](https://github.com/PACTA-Team/pacta_appweb) | Aplicación Flutter (frontend móvil) |
-| [pacta-backend](https://github.com/PACTA-Team/pacta-backend) | Backend API (en desarrollo) |
+| Repositorio | Descripción | Estado |
+|-------------|-------------|--------|
+| [pacta_appweb](https://github.com/PACTA-Team/pacta_appweb) | Frontend Flutter (app móvil POS) | ✅ En uso |
+| [pacta-backend](https://github.com/PACTA-Team/pacta-backend) | Backend API FastAPI + GraphQL | 🟡 En desarrollo |
+
+---
+
+## 📊 Roadmap Resumen
+
+| Versión | Periodo | Foco | Estado |
+|---------|---------|------|--------|
+| v2.0 MVP | Semanas 1-8 | Plataforma funcional base | 🟡 En desarrollo |
+| v2.1 | Semanas 9-12 | Reportes avanzados + PDF | ⏳ Planificado |
+| v2.2 | Semanas 13-18 | Búsqueda full-text + UX | ⏳ Planificado |
+| v2.3 | Semanas 19-24 | Colaboración + comentarios | ⏳ Planificado |
+| v2.4 | Semanas 25-32 | Multi-tenant + SaaS billing | ⏳ Planificado |
+| v2.5 | Semanas 33-40 | Self-host Docker edition | ⏳ Planificado |
+| v3.0 | Meses 10-18 | Desktop App (Win + Linux) | ⏳ Planificado |
 
 ---
 
@@ -103,4 +141,4 @@ MIT License — ver [LICENSE](LICENSE) para detalles.
 
 ---
 
-**PACTA Team** © 2026
+**PACTA Team** © 2026 | *Contratos bajo control.*
